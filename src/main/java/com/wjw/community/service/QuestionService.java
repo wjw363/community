@@ -2,6 +2,7 @@ package com.wjw.community.service;
 
 import com.wjw.community.dto.PaginationDTO;
 import com.wjw.community.dto.QuestionDTO;
+import com.wjw.community.dto.QuestionQueryDTO;
 import com.wjw.community.exception.CustomizeErrorCode;
 import com.wjw.community.exception.CustomizeException;
 import com.wjw.community.mapper.QuestionExtMapper;
@@ -31,10 +32,16 @@ public class QuestionService {
     @Autowired(required = false)
     private QuestionExtMapper questionExtMapper;
 
-    public PaginationDTO list(Integer page, Integer size) {
+    public PaginationDTO list(String search,Integer page, Integer size) {
+        if (StringUtils.isNotBlank(search)){
+            String[] titles = StringUtils.split(search, " ");
+            search = Arrays.stream(titles).collect(Collectors.joining("|"));
+        }
         PaginationDTO paginationDTO = new PaginationDTO();
         Integer totalPage;
-        Integer totalCount = (int)questionMapper.countByExample(new QuestionExample());
+        QuestionQueryDTO questionQueryDTO = new QuestionQueryDTO();
+        questionQueryDTO.setSearch(search);
+        Integer totalCount = questionExtMapper.countBySearch(questionQueryDTO);
         if (totalCount % size == 0) {
             totalPage = totalCount / size;
         } else {
@@ -47,12 +54,11 @@ public class QuestionService {
             page = totalPage;
         }
         paginationDTO.setPagination(totalPage, page);
-
         //size*(page-1)
         Integer offset = size * (page - 1);
-        QuestionExample example = new QuestionExample();
-        example.setOrderByClause("gmt_create desc");
-        List<Question> questions = questionMapper.selectByExampleWithRowbounds(example, new RowBounds(offset, size));
+        questionQueryDTO.setPage(offset);
+        questionQueryDTO.setSize(size);
+        List<Question> questions = questionExtMapper.selectBySearch(questionQueryDTO);
         List<QuestionDTO> questionDTOList = new ArrayList<>();
         for (Question question : questions) {
             User user = userMapper.selectByPrimaryKey(question.getCreator());

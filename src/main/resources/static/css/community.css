@@ -113,3 +113,7 @@ body {
 .menu .icon:hover {
     color: #499ef3;
 }
+.footer{
+    text-align:center;
+    color: #666;
+}
