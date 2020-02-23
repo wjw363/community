@@ -8,6 +8,7 @@ community.vpp.*
 /target/
 !.mvn/wrapper/maven-wrapper.jar
 logs/
+resources/application.properties
 ### STS ###
 .apt_generated
 .classpath
